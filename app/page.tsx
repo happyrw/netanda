@@ -1,113 +1,125 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { ImSpinner9 } from "react-icons/im";
+import { useGetMoviesQuery } from "@/services/TMDB";
+import { renderStars } from "@/utils/starts-format";
+import SidebarComponent from "@/components/sidebar-component";
+
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import SearchComponent from "@/components/search-component";
+import { useRouter } from "next/navigation";
+import Pagination from "@/components/Pagination";
+import MovieFeatures from "@/components/MovieFeatures";
 
 export default function Home() {
+
+  const [page, setPage] = useState(1);
+  const [showSearchPage, setShowSearchPage] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [query, setQuery] = useState('');
+  const [movies, setMovies] = useState<any[] | null>(null);
+  const [viewCount, setViewCount] = useState<number>(0);
+  const { genreIdOrCategoryName, searchQuery } = useSelector((state: RootState) => state.currentGenreOrCategory);
+  const { data, error, isFetching } = useGetMoviesQuery({ genreIdOrCategoryName, page, searchQuery });
+
+  const router = useRouter();
+
+  const handleNavigation = (id: number) => {
+    router.push(`/movie_details/${id}`);
+  };
+
+  useEffect(() => {
+    const currentCount = localStorage.getItem('viewCount');
+    const newCount = currentCount ? parseInt(currentCount, 10) + 1 : 1;
+    localStorage.setItem('viewCount', newCount.toString());
+    setViewCount(newCount);
+  }, []);
+
+  useEffect(() => {
+    if (isFetching) {
+      setIsLoading(true);
+    } else if (data) {
+      setMovies(data.results);
+      setIsLoading(false);
+    } else if (error) {
+      setIsLoading(false);
+    }
+  }, [data, isFetching, error]);
+
+  if (isLoading) {
+    return (
+      <div className="absolute top-0 right-0 left-0 bottom-0 bg-white flex items-center justify-center">
+        <ImSpinner9 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <p>Something went wrong!</p>
+      </div>
+    );
+  }
+
+  if (!data || !movies) {
+    <div className="absolute top-0 right-0 left-0 bottom-0 bg-white flex items-center justify-center">
+      <ImSpinner9 className="w-8 h-8 animate-spin" />
+    </div>
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+    <main className="relative">
+      <div className="flex items-start w-full">
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+        <SidebarComponent viewCount={viewCount} />
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+        {!showSearchPage && (
+          <>
+            <div className="relative flex flex-col custom-width">
+              <button onClick={() => setShowSearchPage(true)} className="absolute top-2 right-2 bg-white w-[20px] sm:w-[40px] h-[20px] sm:h-[40px] rounded-full shadow-sm shadow-black flex items-center justify-center z-10">
+                <Image src="/search.png" alt="search" width={60} height={60} className="object-cover w-[10px] sm:w-[30px] h-[10px] sm:h-[30px]" />
+              </button>
+              <MovieFeatures movie={data.results[5]} />
+              <div>
+                <div className="grid custom-grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 p-4">
+                  {movies && movies.map((movie) => (
+                    <div key={movie.id} onClick={() => handleNavigation(movie.id)} className="rounded-lg transition-all duration-200 ease-in-out hover:scale-105 h-[300px] lg:h-[400px] relative">
+                      <Image
+                        src={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : "https://www.fillmurray.com/200/300"}
+                        alt={movie.title}
+                        width={100}
+                        height={100}
+                        className="rounded-lg object-cover w-full h-[250px] lg:h-[350px]"
+                      />
+                      <p className="text-center text-xl line-clamp-1 capitalize pt-2">{movie.title}</p>
+                      <p className="flex items-center justify-center text-yellow-600">{renderStars(movie.vote_average)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {movies?.length && <Pagination currentPage={page} setPage={setPage} totalPages={data?.total_pages} />}
+            </div>
+          </>
+        )}
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+        {showSearchPage && (
+          <SearchComponent
+            movies={movies}
+            setShowSearchPage={setShowSearchPage}
+            setQuery={setQuery}
+            query={query}
+            handleNavigation={handleNavigation}
+            dataPages={data?.total_pages}
+            page={page}
+            setPage={setPage}
+            length={movies?.length}
+          />
+        )}
       </div>
     </main>
   );
-}
+};

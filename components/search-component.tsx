@@ -25,13 +25,7 @@ const SearchComponent = ({ movies, setShowSearchPage, setQuery, query, handleNav
             dispatch(searchMovie(query));
         }
     };
-
-    // if (!length) {
-    //     return (
-    //         <div className="text-center text-gray-600">No results found for "{query}"</div>
-    //     )
-    // }
-
+    
     return (
         <div className="h-screen custom-width bg-slate-300 overflow-y-auto">
             <div className="relative flex items-center justify-center p-4">
@@ -59,7 +53,7 @@ const SearchComponent = ({ movies, setShowSearchPage, setQuery, query, handleNav
                     </div>
                 ))}
             </div>
-            {!length && <div className="text-center text-gray-600">No results found for "{query}"</div>}
+            {!length && <div className="text-center text-gray-600">No results found for {query}</div>}
             {length !== 0 && <Pagination currentPage={page} setPage={setPage} totalPages={dataPages} />}
         </div>
     )

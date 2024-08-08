@@ -80,8 +80,8 @@ export default function Home() {
         {!showSearchPage && (
           <>
             <div className="relative flex flex-col custom-width">
-              <button onClick={() => setShowSearchPage(true)} className="absolute top-2 right-2 bg-white w-[20px] sm:w-[40px] h-[20px] sm:h-[40px] rounded-full shadow-sm shadow-black flex items-center justify-center z-10">
-                <Image src="/search.png" alt="search" width={60} height={60} className="object-cover w-[10px] sm:w-[30px] h-[10px] sm:h-[30px]" />
+              <button onClick={() => setShowSearchPage(true)} className="absolute top-2 right-2 bg-white w-[50px] sm:w-[40px] h-[50px] sm:h-[40px] rounded-full shadow-sm shadow-black flex items-center justify-center z-10">
+                <Image src="/search.png" alt="search" width={60} height={60} className="object-cover w-[30px] sm:w-[30px] h-[30px] sm:h-[30px]" />
               </button>
               <MovieFeatures movie={data.results[5]} />
               <div>

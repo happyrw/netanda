@@ -59,7 +59,7 @@ const SearchComponent = ({ movies, setShowSearchPage, setQuery, query, handleNav
                     </div>
                 ))}
             </div>
-            {!length && <div className="text-center text-gray-600">No results found for "{query}"</div>}
+            {!length && <div className="text-center text-gray-600">No results found for {query}</div>}
             {length !== 0 && <Pagination currentPage={page} setPage={setPage} totalPages={dataPages} />}
         </div>
     )
